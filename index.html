@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shopping List with Quantity and Price Tracking</title>
+    <link rel="stylesheet" href="./bootstrap.min.css" />
+    <link rel="stylesheet" href="./bootstrap-icons.min.css" />
+  </head>
+  <body class="bg-light" dir="rtl">
+    <div
+      class="container bg-secondary bg-opacity-25 border border-info rounded-4 mt-2 text-center"
+    >
+      <div class="row mt-3">
+        <div class="col">
+          <h2 class="">Shopping List with Quantity and Price Tracking</h2>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-1">
+          <button class="btn btn-danger" id="btnInput">إضافة</button>
+        </div>
+        <div class="col-7">
+          <input
+            type="text"
+            class="form-control text-center"
+            placeholder="اسم العنصر"
+            id="inputName"
+          />
+        </div>
+        <div class="col-2">
+          <input
+            type="number"
+            class="form-control text-center"
+            placeholder="الكمية"
+            id="inputQuantity"
+          />
+        </div>
+        <div class="col-2">
+          <input
+            type="number"
+            class="form-control text-center"
+            placeholder="السعر"
+            id="inputPrice"
+          />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <table class="table table-bordered border-success text-center mt-4">
+            <thead class="table-success border-success">
+              <tr>
+                <th class="col-1">الرقم</th>
+                <th class="col-6">اسم العنصر</th>
+                <th class="col-1">الكمية</th>
+                <th class="col-1">السعر</th>
+                <th class="col-1">الاجمالي</th>
+                <th class="col-1">الشراء</th>
+                <th class="col-1">حذف</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr>
+                <td colspan="7" class="text-muted fw-bold py-3">
+                  لايوجد مشتريات لعرضها
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row justify-content-around mb-3">
+        <div class="col-auto bg-primary text-center pt-1 rounded text-white">
+          <h5>اجمالي المشتريات</h5>
+        </div>
+        <div
+          class="col-2 bg-primary text-center pt-1 rounded text-white fw-bold"
+        >
+          <h5 id="Total">0</h5>
+        </div>
+      </div>
+    </div>
+    <script>
+      let Purchases = [];
+      const inputBtn = document.getElementById("btnInput");
+      const nameInput = document.getElementById("inputName");
+      const quantityInput = document.getElementById("inputQuantity");
+      const priceInput = document.getElementById("inputPrice");
+      const tableBody = document.getElementById("tbody");
+      const totalPrice = document.getElementById("Total");
+      let count = 1;
+
+      inputBtn.addEventListener("click", () => {
+        const nameItem = nameInput.value.trim();
+        const quantityItem = quantityInput.value;
+        const priceItem = priceInput.value;
+        if (nameItem === "" && quantityItem === "" && priceItem === "") {
+          alert("ادخل اسم العنصر والكمية والسعر");
+          return;
+        }
+        if (nameItem === "" && quantityItem === "") {
+          alert("ادخل اسم العنصر والكمية");
+          return;
+        }
+        if (nameItem === "" && priceItem === "") {
+          alert("ادخل اسم العنصر والسعر");
+          return;
+        }
+        if (quantityItem === "" && priceItem === "") {
+          alert("ادخل الكمية والسعر");
+          return;
+        } else if (nameItem === "") {
+          alert("ادخل اسم العنصر");
+          return;
+        } else if (quantityItem === "") {
+          alert("ادخل الكمية");
+          return;
+        } else if (priceItem === "") {
+          alert("ادخل السعر");
+          return;
+        }
+        const purchase = {
+          id: Date.now(),
+          numItem: count++,
+          nameItem: nameItem,
+          quantityItem: quantityItem,
+          priceItem: priceItem,
+        };
+        Purchases.push(purchase);
+        nameInput.value = "";
+        quantityInput.value = "";
+        priceInput.value = "";
+        render();
+      });
+      function render() {
+        const total = Purchases.reduce(
+          (sum, item) =>
+            sum + Number(item.quantityItem) * Number(item.priceItem),
+          0,
+        );
+        totalPrice.textContent = total.toLocaleString();
+        tableBody.innerHTML = "";
+        if (Purchases.length === 0) {
+          tableBody.innerHTML = `<tr>
+              <td colspan="7" class="text-muted fw-bold py-3">لا توجد مشتريات لعرضها</td>
+            </tr>`;
+          return;
+        }
+        Purchases.forEach((item) => {
+          const tr = document.createElement("tr");
+          const btnClass = item.completed
+            ? "btn-success"
+            : "btn-outline-success";
+          const iconClass = item.completed ? "bi-check-all" : "bi-check-lg";
+          const textDecoration = item.completed
+            ? "text-decoration-line-through text-muted"
+            : "";
+          tr.innerHTML = `
+            <td>${item.numItem}</td>
+            <td class="${textDecoration}">${item.nameItem}</td>
+            <td>${item.quantityItem}</td>
+            <td>${item.priceItem}</td>
+            <td>${Number(item.quantityItem) * Number(item.priceItem)}</td>
+            <td>
+              <button class="btn btn-sm ${btnClass}" onclick="togglePurcheses(${item.id})">
+                <i class="bi ${iconClass}"></i>
+              </button>
+            </td>
+            <td>
+              <button class="btn btn-sm px-3" onclick="deletePurcheses(${item.id})">
+                <i class="bi bi-trash text-danger fs-5"></i>
+              </button>
+            </td>`;
+          tableBody.appendChild(tr);
+        });
+      }
+      function togglePurcheses(id) {
+        Purchases = Purchases.map((item) => {
+          if (item.id === id) {
+            return { ...item, completed: !item.completed };
+          }
+          return item;
+        });
+        render();
+      }
+      function deletePurcheses(id) {
+        Purchases = Purchases.filter((item) => item.id !== id);
+        render();
+      }
+    </script>
+    <script src="./bootstrap.bundle.min.js"></script>
+  </body>
+</html>
